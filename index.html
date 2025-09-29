@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Gift Exchange</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --accent: #ff3366;
+            --light: #f8f9fa;
+            --dark: #121212;
+            --dark-card: #1e1e1e;
+            --dark-text: #e0e0e0;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --gray: #6c757d;
+            --border-radius: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--dark-text);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        
+        body.light-mode {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--dark-card);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .light-mode .container {
+            background: white;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 24px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            max-width: 80%;
+            margin: 0 auto;
+        }
+        
+        .theme-toggle {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        
+        .guarantor-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #2a2a2a;
+            border-radius: var(--border-radius);
+            padding: 4px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        
+        .light-mode .tabs {
+            background: #f1f3f5;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .light-mode .tab.active {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #333;
+        }
+        
+        .light-mode .card {
+            background: white;
+            border: 1px solid #e9ecef;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--secondary);
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-text);
+        }
+        
+        .light-mode .form-group label {
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #444;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            background: #333;
+            color: var(--dark-text);
+        }
+        
+        .light-mode .form-control {
+            background: white;
+            border-color: #e9ecef;
+            color: #333;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(106, 17, 203, 0.25);
+        }
+        
+        .btn-secondary {
+            background: var(--gray);
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+        }
+        
+        .nft-card {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nft-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+        
+        .nft-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .nft-desc {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        
+        .exchange-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: #333;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .light-mode .exchange-item {
+            background: var(--light);
+        }
+        
+        .exchange-info {
+            flex: 1;
+        }
+        
+        .exchange-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--dark-text);
+        }
+        
+        .light-mode .exchange-title {
+            color: var(--dark);
+        }
+        
+        .exchange-desc {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .user-details h3 {
+            color: var(--dark-text);
+            margin-bottom: 4px;
+        }
+        
+        .light-mode .user-details h3 {
+            color: var(--dark);
+        }
+        
+        .user-details p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .search-box input {
+            flex: 1;
+        }
+        
+        .user-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 8px;
+            background: #333;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .light-mode .user-item {
+            background: #f8f9fa;
+        }
+        
+        .user-item:hover {
+            background: #444;
+        }
+        
+        .light-mode .user-item:hover {
+            background: #e9ecef;
+        }
+        
+        .user-item .avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+            margin-right: 12px;
+        }
+        
+        .user-item-info {
+            flex: 1;
+        }
+        
+        .user-item-name {
+            font-weight: 500;
+            color: var(--dark-text);
+        }
+        
+        .light-mode .user-item-name {
+            color: var(--dark);
+        }
+        
+        .user-item-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        .limits-info {
+            display: flex;
+            justify-content: space-between;
+            background: #333;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .light-mode .limits-info {
+            background: #f8f9fa;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+        }
+        
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid var(--success);
+        }
+        
+        .notification.error {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--dark-card);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .light-mode .modal-content {
+            background: white;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: var(--secondary);
+        }
+        
+        .modal-text {
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-buttons .btn {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 16px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .tabs {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .tab {
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="container">
+        <div class="header">
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+            <h1>🎁 NFT Gift Exchange</h1>
+            <p>Безопасный обмен NFT-подарками с гарантией</p>
+            <div class="guarantor-badge">
+                <span>✅</span>
+                <span>Гарант онлайн</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="user-info">
+                <div class="avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <h3 id="userName">Пользователь</h3>
+                    <p id="userStatus">@username · Статус: Загрузка...</p>
+                </div>
+            </div>
+            
+            <div class="limits-info">
+                <div>Осталось обменов: <strong>2/2</strong></div>
+                <div>Запросов: <strong>8/10</strong></div>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="exchange">Обмен</div>
+                <div class="tab" data-tab="search">Поиск</div>
+                <div class="tab" data-tab="inventory">Инвентарь</div>
+                <div class="tab" data-tab="requests">Запросы</div>
+                <div class="tab" data-tab="history">История</div>
+            </div>
+            
+            <div class="tab-content active" id="exchange-tab">
+                <div class="card">
+                    <h3 class="card-title">🔄 Создать обмен</h3>
+                    
+                    <div class="form-group">
+                        <label>Выберите получателя:</label>
+                        <select class="form-control" id="receiverSelect">
+                            <option value="">-- Выберите пользователя --</option>
+                            <option value="user1">Алексей (@alexey_nft)</option>
+                            <option value="user2">Мария (@maria_crypto)</option>
+                            <option value="user3">Дмитрий (@dmitry_art)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Выберите NFT для обмена:</label>
+                        <select class="form-control" id="nftOffer">
+                            <option value="">-- Выберите ваш NFT --</option>
+                            <option value="nft1">Rare Art Collection #1245</option>
+                            <option value="nft2">CryptoPunk #5678</option>
+                            <option value="nft3">Digital Land #9021</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Выберите NFT для получения:</label>
+                        <select class="form-control" id="nftRequest">
+                            <option value="">-- Выберите NFT получателя --</option>
+                            <option value="nft4">Bored Ape #3452</option>
+                            <option value="nft5">Art Blocks #7821</option>
+                            <option value="nft6">Moonbirds #4593</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn" id="createExchangeBtn">
+                        🚀 Создать обмен
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">📋 Активные обмены</h3>
+                    <div id="activeExchanges">
+                        <p style="text-align: center; padding: 20px; color: var(--gray);">У вас нет активных обменов</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="search-tab">
+                <div class="card">
+                    <h3 class="card-title">🔍 Поиск пользователей</h3>
+                    
+                    <div class="search-box">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Введите имя или @username">
+                        <button class="btn btn-sm" id="searchBtn">Найти</button>
+                    </div>
+                    
+                    <div class="user-list" id="userList">
+                        <div class="user-item">
+                            <div class="avatar">A</div>
+                            <div class="user-item-info">
+                                <div class="user-item-name">Алексей (@alexey_nft)</div>
+                                <div class="user-item-desc">15 NFT · 97% положительных отзывов</div>
+                            </div>
+                            <button class="btn btn-sm">Выбрать</button>
+                        </div>
+                        
+                        <div class="user-item">
+                            <div class="avatar">M</div>
+                            <div class="user-item-info">
+                                <div class="user-item-name">Мария (@maria_crypto)</div>
+                                <div class="user-item-desc">8 NFT · 100% положительных отзывов</div>
+                            </div>
+                            <button class="btn btn-sm">Выбрать</button>
+                        </div>
+                        
+                        <div class="user-item">
+                            <div class="avatar">Д</div>
+                            <div class="user-item-info">
+                                <div class="user-item-name">Дмитрий (@dmitry_art)</div>
+                                <div class="user-item-desc">23 NFT · 89% положительных отзывов</div>
+                            </div>
+                            <button class="btn btn-sm">Выбрать</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="inventory-tab">
+                <div class="card">
+                    <h3 class="card-title">🎒 Мой инвентарь</h3>
+                    
+                    <div class="nft-card">
+                        <h4 class="nft-title">Rare Art Collection #1245</h4>
+                        <p class="nft-desc">Эксклюзивная цифровая коллекция искусств · Паттерн: #ART1245</p>
+                        <button class="btn btn-sm withdraw-btn" data-nft="Rare Art Collection #1245">Вывести</button>
+                    </div>
+                    
+                    <div class="nft-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <h4 class="nft-title">CryptoPunk #5678</h4>
+                        <p class="nft-desc">Редкий CryptoPunk из оригинальной коллекции · Паттерн: #CP5678</p>
+                        <button class="btn btn-sm withdraw-btn" data-nft="CryptoPunk #5678">Вывести</button>
+                    </div>
+                    
+                    <div class="nft-card" style="background: linear-gradient(135deg, #cd9cf2 0%, #f6f3ff 100%);">
+                        <h4 class="nft-title">Digital Land #9021</h4>
+                        <p class="nft-desc">Земельный участок в метавселенной · Паттерн: #DL9021</p>
+                        <button class="btn btn-sm withdraw-btn" data-nft="Digital Land #9021">Вывести</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="requests-tab">
+                <div class="card">
+                    <h3 class="card-title">📨 Входящие запросы</h3>
+                    
+                    <div class="exchange-item">
+                        <div class="exchange-info">
+                            <div class="exchange-title">Алексей (@alexey_nft) предлагает обмен</div>
+                            <div class="exchange-desc">CryptoPunk #5678 → Rare Art Collection #1245</div>
+                        </div>
+                        <div class="modal-buttons">
+                            <button class="btn btn-success btn-sm accept-btn">Принять</button>
+                            <button class="btn btn-danger btn-sm reject-btn">Отклонить</button>
+                        </div>
+                    </div>
+                    
+                    <div class="exchange-item">
+                        <div class="exchange-info">
+                            <div class="exchange-title">Мария (@maria_crypto) предлагает обмен</div>
+                            <div class="exchange-desc">Art Blocks #7821 → Digital Land #9021</div>
+                        </div>
+                        <div class="modal-buttons">
+                            <button class="btn btn-success btn-sm accept-btn">Принять</button>
+                            <button class="btn btn-danger btn-sm reject-btn">Отклонить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="history-tab">
+                <div class="card">
+                    <h3 class="card-title">📊 История обменов</h3>
+                    
+                    <div class="exchange-item">
+                        <div class="exchange-info">
+                            <div class="exchange-title">CryptoPunk #5678 → Bored Ape #3452</div>
+                            <div class="exchange-desc">С пользователем @alexey_nft · 12.04.2023</div>
+                        </div>
+                        <div class="status-badge status-completed">Завершено</div>
+                    </div>
+                    
+                    <div class="exchange-item">
+                        <div class="exchange-info">
+                            <div class="exchange-title">Digital Land #9021 → Rare Art #6712</div>
+                            <div class="exchange-desc">С пользователем @maria_crypto · 05.04.2023</div>
+                        </div>
+                        <div class="status-badge status-cancelled">Отменено</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <span>✅</span>
+        <span id="notification-text">Обмен успешно создан!</span>
+    </div>
+    
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <h3 class="modal-title">💎 Вывод NFT</h3>
+            <p class="modal-text" id="withdrawModalText">Для вывода NFT "CryptoPunk #5678" необходимо оплатить 25 звезд за обмен и 1% от стоимости NFT.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelWithdraw">Отмена</button>
+                <button class="btn" id="confirmWithdraw">Оплатить</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="exchangeModal">
+        <div class="modal-content">
+            <h3 class="modal-title">🔄 Подтверждение обмена</h3>
+            <p class="modal-text" id="exchangeModalText">Вы уверены, что хотите принять этот обмен?</p>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="rejectExchange">Отклонить</button>
+                <button class="btn btn-success" id="acceptExchange">Принять</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация данных пользователя
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                document.getElementById('userAvatar').textContent = user.first_name?.[0] || 'U';
+                document.getElementById('userName').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь';
+                document.getElementById('userStatus').textContent = `@${user.username} · ID: ${user.id}`;
+            } else {
+                document.getElementById('userStatus').textContent = 'Не авторизован';
+            }
+            
+            // Переключение темы
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            
+            themeToggle.addEventListener('click', () => {
+                if (body.classList.contains('dark-mode')) {
+                    body.classList.remove('dark-mode');
+                    body.classList.add('light-mode');
+                    themeToggle.textContent = '☀️';
+                } else {
+                    body.classList.remove('light-mode');
+                    body.classList.add('dark-mode');
+                    themeToggle.textContent = '🌙';
+                }
+            });
+            
+            // Обработка вкладок
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+            
+            // Создание обмена
+            document.getElementById('createExchangeBtn').addEventListener('click', () => {
+                const receiver = document.getElementById('receiverSelect').value;
+                const nftOffer = document.getElementById('nftOffer').value;
+                const nftRequest = document.getElementById('nftRequest').value;
+                
+                if (!receiver || !nftOffer || !nftRequest) {
+                    showNotification('Заполните все обязательные поля', 'error');
+                    return;
+                }
+                
+                showNotification('Обмен создан! Ожидайте подтверждения получателя.', 'success');
+                
+                // Очистка формы
+                document.getElementById('receiverSelect').value = '';
+                document.getElementById('nftOffer').value = '';
+                document.getElementById('nftRequest').value = '';
+                
+                // Добавление в список активных обменов
+                addExchangeToList({
+                    id: Date.now(),
+                    receiver: document.getElementById('receiverSelect').options[document.getElementById('receiverSelect').selectedIndex].text,
+                    offer: document.getElementById('nftOffer').options[document.getElementById('nftOffer').selectedIndex].text,
+                    request: document.getElementById('nftRequest').options[document.getElementById('nftRequest').selectedIndex].text,
+                    status: 'pending',
+                    date: new Date().toLocaleDateString()
+                });
+            });
+            
+            // Функция добавления обмена в список
+            function addExchangeToList(exchange) {
+                const exchangesContainer = document.getElementById('activeExchanges');
+                
+                // Если сообщение "нет обменов" видимо, скрываем его
+                if (exchangesContainer.querySelector('p')) {
+                    exchangesContainer.innerHTML = '';
+                }
+                
+                const exchangeElement = document.createElement('div');
+                exchangeElement.className = 'exchange-item';
+                exchangeElement.innerHTML = `
+                    <div class="exchange-info">
+                        <div class="exchange-title">${exchange.offer} → ${exchange.request}</div>
+                        <div class="exchange-desc">Для ${exchange.receiver} · ${exchange.date} · Ожидание подтверждения</div>
+                    </div>
+                    <div class="status-badge status-pending">В процессе</div>
+                `;
+                
+                exchangesContainer.appendChild(exchangeElement);
+            }
+            
+            // Обработка кнопок вывода
+            const withdrawButtons = document.querySelectorAll('.withdraw-btn');
+            const withdrawModal = document.getElementById('withdrawModal');
+            const withdrawModalText = document.getElementById('withdrawModalText');
+            const cancelWithdraw = document.getElementById('cancelWithdraw');
+            const confirmWithdraw = document.getElementById('confirmWithdraw');
+            
+            withdrawButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const nftName = this.getAttribute('data-nft');
+                    withdrawModalText.textContent = `Для вывода NFT "${nftName}" необходимо оплатить 25 звезд за обмен и 1% от стоимости NFT.`;
+                    withdrawModal.style.display = 'flex';
+                });
+            });
+            
+            cancelWithdraw.addEventListener('click', () => {
+                withdrawModal.style.display = 'none';
+            });
+            
+            confirmWithdraw.addEventListener('click', () => {
+                withdrawModal.style.display = 'none';
+                showNotification('Оплата прошла успешно! NFT будет переведен на ваш аккаунт в течение 24 часов.', 'success');
+            });
+            
+            // Обработка запросов на обмен
+            const acceptButtons = document.querySelectorAll('.accept-btn');
+            const rejectButtons = document.querySelectorAll('.reject-btn');
+            const exchangeModal = document.getElementById('exchangeModal');
+            const exchangeModalText = document.getElementById('exchangeModalText');
+            const acceptExchange = document.getElementById('acceptExchange');
+            const rejectExchange = document.getElementById('rejectExchange');
+            
+            acceptButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const exchangeText = this.closest('.exchange-item').querySelector('.exchange-title').textContent;
+                    exchangeModalText.textContent = `Вы уверены, что хотите принять предложение: ${exchangeText}?`;
+                    exchangeModal.style.display = 'flex';
+                });
+            });
+            
+            rejectButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showNotification('Запрос на обмен отклонен', 'error');
+                });
+            });
+            
+            acceptExchange.addEventListener('click', () => {
+                exchangeModal.style.display = 'none';
+                showNotification('Обмен успешно завершен! NFT добавлены в ваш инвентарь.', 'success');
+            });
+            
+            rejectExchange.addEventListener('click', () => {
+                exchangeModal.style.display = 'none';
+                showNotification('Обмен отклонен', 'error');
+            });
+            
+            // Функция показа уведомлений
+            function showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                const notificationText = document.getElementById('notification-text');
+                
+                notificationText.textContent = message;
+                notification.className = `notification ${type} show`;
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Имитация загрузки данных
+            setTimeout(() => {
+                // Добавляем пример активного обмена
+                addExchangeToList({
+                    id: 1,
+                    receiver: "Алексей (@alexey_nft)",
+                    offer: 'Rare Art Collection #1245',
+                    request: 'Bored Ape #3452',
+                    status: 'pending',
+                    date: new Date().toLocaleDateString()
+                });
+            }, 1500);
+            
+            // Обработка выбора пользователя из поиска
+            const userItems = document.querySelectorAll('.user-item .btn');
+            userItems.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userName = this.closest('.user-item').querySelector('.user-item-name').textContent;
+                    const receiverSelect = document.getElementById('receiverSelect');
+                    
+                    // Переключаемся на вкладку обмена
+                    document.querySelector('[data-tab="exchange"]').click();
+                    
+                    // Устанавливаем выбранного пользователя
+                    for (let option of receiverSelect.options) {
+                        if (option.text.includes(userName)) {
+                            receiverSelect.value = option.value;
+                            break;
+                        }
+                    }
+                    
+                    showNotification(`Пользователь ${userName} выбран для обмена`, 'success');
+                });
+            });
+            
+            // Обработка поиска пользователей
+            document.getElementById('searchBtn').addEventListener('click', function() {
+                const searchText = document.getElementById('searchInput').value.toLowerCase();
+                const userItems = document.querySelectorAll('.user-item');
+                
+                userItems.forEach(item => {
+                    const userName = item.querySelector('.user-item-name').textContent.toLowerCase();
+                    if (userName.includes(searchText)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
